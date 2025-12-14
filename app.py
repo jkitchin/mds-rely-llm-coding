@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score, mean_squared_error
-import io
 
 st.title("Data Analysis and Model Fitting App")
 
@@ -79,7 +78,13 @@ if uploaded_file is not None:
                     st.subheader("Data with Fitted Model")
                     fig2, ax2 = plt.subplots(figsize=(10, 6))
                     ax2.scatter(X, y, alpha=0.5, label='Data points')
-                    ax2.plot(X, y_pred, color='red', linewidth=2, label='Fitted line')
+                    
+                    # Sort X and y_pred for proper line plotting
+                    sort_idx = np.argsort(X.flatten())
+                    X_sorted = X[sort_idx]
+                    y_pred_sorted = y_pred[sort_idx]
+                    
+                    ax2.plot(X_sorted, y_pred_sorted, color='red', linewidth=2, label='Fitted line')
                     ax2.set_xlabel(x_col)
                     ax2.set_ylabel(y_col)
                     ax2.set_title(f'Linear Regression: {y_col} vs {x_col}')
