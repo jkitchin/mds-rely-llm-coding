@@ -10,6 +10,8 @@ from sklearn.linear_model import LinearRegression
 import numpy as np
 
 app = Flask(__name__)
+# Note: For production, use a fixed secret key from environment variables
+# e.g., app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
 app.secret_key = os.urandom(24)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
@@ -113,7 +115,7 @@ def index():
                 return render_template('index.html', 
                                      image=img_base64, 
                                      model_info=model_info,
-                                     data_preview=df.head(10).to_html(classes='table table-striped'))
+                                     data_preview=df.head(10).to_html(classes='table table-striped', escape=True))
                 
             except Exception as e:
                 flash(f'Error processing file: {str(e)}')
@@ -125,4 +127,6 @@ def index():
     return render_template('index.html')
 
 if __name__ == '__main__':
+    # Note: Debug mode and host='0.0.0.0' are for development only
+    # For production, set debug=False and configure proper host/port
     app.run(debug=True, host='0.0.0.0', port=5000)
