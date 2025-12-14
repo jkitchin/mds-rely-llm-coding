@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Data Analyzer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .upload-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .upload-section:hover {
+            border-color: #4CAF50;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .file-label {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .file-label:hover {
+            background-color: #45a049;
+        }
+        button[type="submit"] {
+            padding: 10px 30px;
+            background-color: #008CBA;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button[type="submit"]:hover {
+            background-color: #007399;
+        }
+        .flash-messages {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #f44336;
+            color: white;
+        }
+        .results {
+            margin-top: 30px;
+        }
+        .plot-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .plot-container img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .model-info {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .model-info h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        .model-info p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        .model-info strong {
+            color: #555;
+        }
+        .data-preview {
+            margin-top: 30px;
+        }
+        .data-preview h2 {
+            color: #333;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .table-striped {
+            border: 1px solid #ddd;
+        }
+        .table-striped th {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        .table-striped td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        .table-striped tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .info-text {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .selected-file {
+            margin: 10px 0;
+            color: #555;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CSV Data Analyzer</h1>
+        <p style="text-align: center; color: #666;">Upload a CSV file to visualize and fit a linear regression model</p>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <div class="upload-section">
+            <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                <label for="file" class="file-label">Choose CSV File</label>
+                <input type="file" id="file" name="file" accept=".csv" onchange="updateFileName()">
+                <div class="selected-file" id="selectedFile"></div>
+                <button type="submit">Upload and Analyze</button>
+            </form>
+            <p class="info-text">The file should contain at least 2 numeric columns. The first two numeric columns will be used for plotting and model fitting.</p>
+        </div>
+        
+        {% if image %}
+        <div class="results">
+            <div class="plot-container">
+                <h2>Data Visualization with Linear Fit</h2>
+                <img src="data:image/png;base64,{{ image }}" alt="Plot with Linear Fit">
+            </div>
+            
+            {% if model_info %}
+            <div class="model-info">
+                <h2>Model Details</h2>
+                <p><strong>X Variable:</strong> {{ model_info.x_column }}</p>
+                <p><strong>Y Variable:</strong> {{ model_info.y_column }}</p>
+                <p><strong>Linear Equation:</strong> y = {{ "%.4f"|format(model_info.slope) }} * x + {{ "%.4f"|format(model_info.intercept) }}</p>
+                <p><strong>R² Score:</strong> {{ "%.4f"|format(model_info.r_squared) }}</p>
+                <p><strong>Number of Data Points:</strong> {{ model_info.n_points }}</p>
+            </div>
+            {% endif %}
+            
+            {% if data_preview %}
+            <div class="data-preview">
+                <h2>Data Preview (First 10 Rows)</h2>
+                {{ data_preview|safe }}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    
+    <script>
+        function updateFileName() {
+            const fileInput = document.getElementById('file');
+            const fileNameDiv = document.getElementById('selectedFile');
+            if (fileInput.files.length > 0) {
+                fileNameDiv.textContent = 'Selected: ' + fileInput.files[0].name;
+            } else {
+                fileNameDiv.textContent = '';
+            }
+        }
+    </script>
+</body>
+</html>
