@@ -46,6 +46,19 @@ http://localhost:5000
    - Model parameters (equation, R² score)
    - Preview of the uploaded data
 
+## Production Deployment
+
+For production deployment, disable debug mode:
+```bash
+FLASK_DEBUG=0 python app.py
+```
+
+Or use a production WSGI server like gunicorn:
+```bash
+pip install gunicorn
+gunicorn app:app
+```
+
 ## Requirements
 
 - Python 3.7+

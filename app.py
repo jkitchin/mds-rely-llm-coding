@@ -129,4 +129,6 @@ def index():
 if __name__ == '__main__':
     # Note: Debug mode and host='0.0.0.0' are for development only
     # For production, set debug=False and configure proper host/port
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # You can disable debug mode by setting the environment variable: FLASK_DEBUG=0
+    debug_mode = os.environ.get('FLASK_DEBUG', '1') == '1'
+    app.run(debug=debug_mode, host='0.0.0.0', port=5000)
